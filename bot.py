@@ -9,7 +9,6 @@ import os
 import pyffmpeg
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
-import re
 
 work_directory = os.path.dirname(os.path.abspath(__file__))
 downloads_directory = work_directory+'/downloads'
