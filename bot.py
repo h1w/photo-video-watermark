@@ -127,5 +127,6 @@ async def help(message: aiogram.types.Message):
             await message.answer('video help')
         elif params[1] == 'link':
             await message.answer('link help')
+
 if __name__ == '__main__':
     aiogram.executor.start_polling(dp, skip_updates=False)
