@@ -6,7 +6,6 @@ import os
 import pyffmpeg
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
-import kmeans
 import numpy as np
 from colorthief import ColorThief
 
