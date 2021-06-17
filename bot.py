@@ -22,7 +22,6 @@ dp = aiogram.Dispatcher(bot)
 async def AnalyzeWatermarkColor(photo_abspath, pos, size):
     photo = Image.open(photo_abspath).copy().convert("RGB").crop((pos[0], pos[1], pos[0]+size[0], pos[1]+size[1]))
     photo.save(photo_abspath)
-    # result = kmeans.main(photo) # Method via kmean.py
     img = ColorThief(photo_abspath)
     dominant_color = img.get_color()
     d = 0
@@ -50,7 +49,7 @@ async def AnalyzeWatermarkColor(photo_abspath, pos, size):
     return user_text_fill
 
 async def PhotoWatermark(photo_abspath, user_text_fill, user_input):
-    photo = Image.open(photo_abspath) # .convert("RGBA")
+    photo = Image.open(photo_abspath)
     with BytesIO() as f:
         photo.save(f, format='PNG')
         photo = Image.open(f).convert("RGBA")
