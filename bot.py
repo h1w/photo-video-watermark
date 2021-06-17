@@ -6,7 +6,6 @@ import os
 import pyffmpeg
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
-import numpy as np
 from colorthief import ColorThief
 
 work_directory = os.path.dirname(os.path.abspath(__file__))
