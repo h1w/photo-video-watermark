@@ -1,17 +1,11 @@
+import settings
 import aiogram
 import logging
-from aiogram import dispatcher
-from aiogram.dispatcher.filters import filters
-from aiogram.dispatcher.filters.builtin import IDFilter
-
-from aiogram.types import video
-import settings
 import datetime
 import os
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from colorthief import ColorThief
-import subprocess
 import asyncio
 
 work_directory = os.path.dirname(os.path.abspath(__file__))
@@ -23,7 +17,7 @@ bot = aiogram.Bot(token=settings.bot['token'])
 dp = aiogram.Dispatcher(bot)
 
 class IsAllowedUser(aiogram.dispatcher.filters.BoundFilter):
-    key = 'is_allowed_user'
+    key = 'is_allowed_user' # Use is_allowed_user=True in aiogram Dispather for check user permission to use this function via bot implementations
     def __init__(self, is_allowed_user):
         self.is_allowed_user = is_allowed_user
     async def check(self, message: aiogram.types.Message):
@@ -158,8 +152,7 @@ async def VideoProcess(message: aiogram.types.Message):
     await message.answer_video(aiogram.types.InputFile(video_edited_abspath), caption="")
     os.remove(video_abspath)
     os.remove(video_edited_abspath)
-# filters=aiogram.filters.IDFilter.validate(settings.bot['allowed_users'])
-# filters=aiogram.dispatcher.filters.builtin.IDFilter.validate(settings.bot['allowed_users'])
+
 @dp.message_handler(commands=['start'], is_allowed_user=True)
 async def start(message: aiogram.types.Message):
     await message.answer("Hi. It's watermark bot.\nType /help for details.")
