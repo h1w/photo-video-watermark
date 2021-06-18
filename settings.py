@@ -1,8 +1,11 @@
 bot = {
-    'token': open('TOKEN', 'r').readline() # Bot token
+    'token': open('BOT_SETTINGS/TOKEN', 'r').readline(), # Bot token
+    'admin': int(open('BOT_SETTINGS/ADMIN_ID', 'r').readline()), # Admin id
+    'allowed_users': list(map(lambda x: int(x.strip('\n')), open('BOT_SETTINGS/USERS_ID', 'r').readlines())) # List ids of allowed users
 }
 
 watermark = {
+    'watermark': 'watermark4.png',
     'watermark_default_text': "@boxthread",
     'watermark_default_rgba': (150, 150, 150, 220),
     'watermark_default_rgba_presets': """(150, 150, 150, 220)
