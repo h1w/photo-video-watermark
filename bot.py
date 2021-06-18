@@ -9,7 +9,14 @@ from colorthief import ColorThief
 import asyncio
 
 work_directory = os.path.dirname(os.path.abspath(__file__))
-downloads_directory = work_directory+'/downloads'
+downloads_directory = '/tmp/boxthread-watermark/downloads'
+# Create directories if not exists
+if not os.path.exists(downloads_directory):
+    os.makedirs(downloads_directory)
+if not os.path.exists(downloads_directory+'/videos'):
+    os.makedirs(downloads_directory+'/videos')
+if not os.path.exists(downloads_directory+'/photos'):
+    os.makedirs(downloads_directory+'/photos')
 
 logging.basicConfig(level=logging.INFO)
 
@@ -120,6 +127,7 @@ async def PhotoProcess(message: aiogram.types.Message):
 
     # Send photo
     await message.answer_photo(aiogram.types.InputFile(photo_outpath), caption=warning_answer)
+    logging.info('[PHOTO] - [{}] - Watermark has been successfully inserted to photo {} owned user {}.'.format(datetime.datetime.now().strftime("%H:%M:%S-%d.%m.%Y"), file_id, message.from_user.id))
     os.remove(photo_abspath) # Delete .jpg
     os.remove(photo_outpath) # Delete .png
 
@@ -150,6 +158,8 @@ async def VideoProcess(message: aiogram.types.Message):
     
     # Send video
     await message.answer_video(aiogram.types.InputFile(video_edited_abspath), caption="")
+    logging.info('[VIDEO] - [{}] - Video {} has been converted from user {}. And watermark has been successfully inserted into the video.'.format(datetime.datetime.now().strftime("%H:%M:%S-%d.%m.%Y"), file_id, message.from_user.id))
+
     os.remove(video_abspath)
     os.remove(video_edited_abspath)
 
