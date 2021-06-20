@@ -76,7 +76,8 @@ async def PhotoWatermark(photo_abspath, user_text_fill, user_input):
         photo_width, photo_height = photo.size
         txt = Image.new("RGBA", photo.size, (255,255,255,0))
         
-        font_size = photo_width//14
+        photo_min_side=photo_width if photo_width < photo_height else photo_height
+        font_size = photo_min_side//14
         font = ImageFont.truetype("{}/fonts/{}".format(work_directory, "Hack-Bold.ttf"), font_size)
         draw = ImageDraw.Draw(txt)
         
