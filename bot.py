@@ -7,9 +7,10 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from colorthief import ColorThief
 import asyncio
+import aiohttp
 
 work_directory = os.path.dirname(os.path.abspath(__file__))
-downloads_directory = '/tmp/boxthread-watermark/downloads'
+downloads_directory = '/tmp/photo-video-watermark/downloads'
 # Create directories if not exists
 if not os.path.exists(downloads_directory):
     os.makedirs(downloads_directory)
@@ -35,6 +36,23 @@ class IsAllowedUser(aiogram.dispatcher.filters.BoundFilter):
             return False
 
 dp.filters_factory.bind(IsAllowedUser) # Register custom filter
+
+@dp.message_handler(commands=['start'], is_allowed_user=True)
+async def start(message: aiogram.types.Message):
+    await message.answer("Hi. It's watermark bot.\nType /help for details.")
+
+@dp.message_handler(commands=['help'], is_allowed_user=True)
+async def help(message: aiogram.types.Message):
+    if len(message.text.split(' ')) == 1:
+        await message.answer(settings.help['help_info'])
+    else:
+        params = message.text.split(' ')
+        if params[1] == 'photo':
+            await message.answer(settings.help['photo_help_answer'])
+        elif params[1] == 'video':
+            await message.answer('video help')
+        elif params[1] == 'link':
+            await message.answer('link help')
 
 async def AnalyzeWatermarkColor(photo_abspath, pos, size):
     photo = Image.open(photo_abspath).copy().convert("RGB").crop((pos[0], pos[1], pos[0]+size[0], pos[1]+size[1]))
@@ -93,7 +111,7 @@ async def PhotoWatermark(photo_abspath, user_text_fill, user_input):
             text_fill = await AnalyzeWatermarkColor(photo_abspath, pos, (text_width, text_height))
         text_stroke_fill = text_fill
         draw.text(pos, text, fill=text_fill, font=font, stroke_fill=text_stroke_fill)
-        photo_outpath = str(*photo_abspath.split('.')[:-1]) +'.png' # Creat same photo in .png format
+        photo_outpath = str(*photo_abspath.split('.')[:-1]) +'_edited.png' # Creat same photo in .png format
         
         combined = Image.alpha_composite(photo, txt)
         combined.save(photo_outpath)
@@ -164,22 +182,48 @@ async def VideoProcess(message: aiogram.types.Message):
     os.remove(video_abspath)
     os.remove(video_edited_abspath)
 
-@dp.message_handler(commands=['start'], is_allowed_user=True)
-async def start(message: aiogram.types.Message):
-    await message.answer("Hi. It's watermark bot.\nType /help for details.")
+async def LinkPhotoProcess(message, link):
+    photo_abspath = '{}/photos/{}.png'.format(downloads_directory, datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f")) # Downloaded photo path to downloads/photos
+    # Download photo in jpg or png format
+    async with aiohttp.ClientSession() as session:
+        async with session.get(link, allow_redirects=True) as response:
+            # Download photo
+            assert response.status == 200
+            photo_bytes = await response.read()
+            photo = Image.open(BytesIO(photo_bytes))
+            photo.save(photo_abspath)
 
-@dp.message_handler(commands=['help'], is_allowed_user=True)
-async def help(message: aiogram.types.Message):
-    if len(message.text.split(' ')) == 1:
-        await message.answer(settings.help['help_info'])
-    else:
-        params = message.text.split(' ')
-        if params[1] == 'photo':
-            await message.answer(settings.help['photo_help_answer'])
-        elif params[1] == 'video':
-            await message.answer('video help')
-        elif params[1] == 'link':
-            await message.answer('link help')
+            # Work with photo
+            photo_outpath = await PhotoWatermark(photo_abspath, user_text_fill="", user_input=False)
+
+            # Send photo
+            await message.answer_photo(aiogram.types.InputFile(photo_outpath), caption="")
+            logging.info('[PHOTO] - [{}] - Watermark has been successfully inserted to photo by link {} owned user {}.'.format(datetime.datetime.now().strftime("%H:%M:%S-%d.%m.%Y"), link, message.from_user.id))
+            os.remove(photo_abspath) # Delete downloaded photo
+            os.remove(photo_outpath) # Delete edited photo
+
+async def LinkVideoProcess(file_extension, message):
+    if file_extension == 'mp4':
+        print('mp4')
+    elif file_extension == 'webm':
+        print('webm')
+
+@dp.message_handler(content_types=aiogram.types.ContentType.TEXT, is_allowed_user=True)
+async def LinkProcess(message: aiogram.types.Message):
+    try:
+        user_input = message.text
+        file_extension = user_input.split('.')[-1]
+        if file_extension == 'mp4':
+            print('mp4')
+        elif file_extension == 'webm':
+            print('wemb')
+        elif file_extension == 'png' or file_extension == 'jpg':
+            await LinkPhotoProcess(message, user_input)
+        else:
+            await message.answer("Try another link please.")
+    except Exception:
+        print(Exception)
+        await message.answer('Link: {} - is invalid.'.format(user_input))
 
 if __name__ == '__main__':
     aiogram.executor.start_polling(dp, skip_updates=False)
